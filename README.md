@@ -3,7 +3,7 @@
 # Introduction 
 You have been tasked to fix some misimplementations of a backend API for a simple reservation platform for tennis players. Using this platform, users can book reservations on a variety of tennis courts that are registered on it. 
 
-This code is already developed in https://github.com/ermathias/tennis-courts-v1 - Clone it, open a feature branch.
+This code is already developed in https://github.com/ermathias/tennis-courts-challenge - Clone it, open a feature branch.
 
 The actual code has the below user stories already implemented. You should complete at least one of the **bold** ones to be able to attend the interview. **In case you are comfortable to complete other ones it will count in your evaluation.**
 
@@ -41,6 +41,6 @@ The actual code has the below user stories already implemented. You should compl
 1. Ensure the code is well tested
  
 # Deliverables and Closing Note 
-For delivering your code you have to do the **FORK** of the @ermathias(ermathias/tennis-courts-v1) repository, then when you finish the implementation please submit a Pull Request to this **FORK** which will be placed in your github account.
+To deliver your solution all you have to do is to **CLONE** this repository into a new repository in your own GitHub account. If you create it as a public repository, you are done. If you create it as a private repository, please make sure to grant the technical interviewers GitHub users access to it.
 
 Good Luck and happy coding!
