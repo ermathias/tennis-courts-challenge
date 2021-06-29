@@ -13,15 +13,15 @@ public class ReservationController extends BaseRestController {
         return ResponseEntity.created(locationByEntity(reservationService.bookReservation(createReservationRequestDTO).getId())).build();
     }
 
-    public ResponseEntity<ReservationDTO> findReservation(Long reservationId) {
+    public ResponseEntity<ReservationDTO> findReservation(Long reservationId)  throws Throwable{
         return ResponseEntity.ok(reservationService.findReservation(reservationId));
     }
 
-    public ResponseEntity<ReservationDTO> cancelReservation(Long reservationId) {
+    public ResponseEntity<ReservationDTO> cancelReservation(Long reservationId) throws Throwable{
         return ResponseEntity.ok(reservationService.cancelReservation(reservationId));
     }
 
-    public ResponseEntity<ReservationDTO> rescheduleReservation(Long reservationId, Long scheduleId) {
+    public ResponseEntity<ReservationDTO> rescheduleReservation(Long reservationId, Long scheduleId) throws Throwable{
         return ResponseEntity.ok(reservationService.rescheduleReservation(reservationId, scheduleId));
     }
 }
