@@ -16,21 +16,32 @@ public class ReservationService {
 
     private final ReservationMapper reservationMapper;
 
-    public ReservationDTO bookReservation(CreateReservationRequestDTO createReservationRequestDTO) {
-        throw new UnsupportedOperationException();
+    public ReservationDTO bookReservation(CreateReservationRequestDTO createReservationRequestDTO) throws EntityNotFoundException{
+    	//Validate CreateReservationRequestDTO
+    	if( createReservationRequestDTO.getGuestId() == null )
+    		throw new EntityNotFoundException("GuestID missing.");
+    	if( createReservationRequestDTO.getScheduleId() == null)
+    		throw new EntityNotFoundException("ScheduleID missing.");
+    	
+    	Reservation reservation = reservationMapper.map(createReservationRequestDTO);
+    	reservationRepository.save(reservation);
+    	
+   	
+    	return reservationMapper.map(reservation);
+
     }
 
-    public ReservationDTO findReservation(Long reservationId) {
+    public ReservationDTO findReservation(Long reservationId) throws Throwable{
         return reservationRepository.findById(reservationId).map(reservationMapper::map).orElseThrow(() -> {
             throw new EntityNotFoundException("Reservation not found.");
         });
     }
 
-    public ReservationDTO cancelReservation(Long reservationId) {
+    public ReservationDTO cancelReservation(Long reservationId) throws Throwable{
         return reservationMapper.map(this.cancel(reservationId));
     }
 
-    private Reservation cancel(Long reservationId) {
+    private Reservation cancel(Long reservationId) throws Throwable{
         return reservationRepository.findById(reservationId).map(reservation -> {
 
             this.validateCancellation(reservation);
@@ -51,7 +62,7 @@ public class ReservationService {
         return reservationRepository.save(reservation);
     }
 
-    private void validateCancellation(Reservation reservation) {
+    private void validateCancellation(Reservation reservation) throws EntityNotFoundException{
         if (!ReservationStatus.READY_TO_PLAY.equals(reservation.getReservationStatus())) {
             throw new IllegalArgumentException("Cannot cancel/reschedule because it's not in ready to play status.");
         }
@@ -73,7 +84,7 @@ public class ReservationService {
 
     /*TODO: This method actually not fully working, find a way to fix the issue when it's throwing the error:
             "Cannot reschedule to the same slot.*/
-    public ReservationDTO rescheduleReservation(Long previousReservationId, Long scheduleId) {
+    public ReservationDTO rescheduleReservation(Long previousReservationId, Long scheduleId) throws Throwable {
         Reservation previousReservation = cancel(previousReservationId);
 
         if (scheduleId.equals(previousReservation.getSchedule().getId())) {
