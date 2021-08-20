@@ -1,6 +1,11 @@
 package com.tenniscourts.reservations;
 
 import com.tenniscourts.exceptions.EntityNotFoundException;
+import com.tenniscourts.guests.Guest;
+import com.tenniscourts.guests.GuestMapper;
+import com.tenniscourts.guests.GuestService;
+import com.tenniscourts.schedules.ScheduleMapper;
+import com.tenniscourts.schedules.ScheduleService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +22,10 @@ public class ReservationService {
     private final ReservationMapper reservationMapper;
 
     public ReservationDTO bookReservation(CreateReservationRequestDTO createReservationRequestDTO) {
-        throw new UnsupportedOperationException();
+        Reservation reservation = reservationMapper.map(createReservationRequestDTO);
+        reservation.setReservationStatus(ReservationStatus.READY_TO_PLAY);
+        reservation.setValue(new BigDecimal(100.0));
+        return reservationMapper.map(reservationRepository.save(reservation));
     }
 
     public ReservationDTO findReservation(Long reservationId) {

@@ -20,13 +20,11 @@ public class ScheduleService {
     }
 
     public List<ScheduleDTO> findSchedulesByDates(LocalDateTime startDate, LocalDateTime endDate) {
-        //TODO: implement
-        return null;
+        return scheduleMapper.map(scheduleRepository.findByStartDateTimeBeforeAndEndDateTimeAfter(endDate, startDate));
     }
 
     public ScheduleDTO findSchedule(Long scheduleId) {
-        //TODO: implement
-        return null;
+        return scheduleMapper.map(scheduleRepository.getOne(scheduleId));
     }
 
     public List<ScheduleDTO> findSchedulesByTennisCourtId(Long tennisCourtId) {
