@@ -12,10 +12,27 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.function.Predicate;
 
 @Service
 @AllArgsConstructor
 public class ReservationService {
+
+    @AllArgsConstructor
+    enum KeepRange {
+
+        OVER_2400 (24 * 60, new BigDecimal(1)),
+        BETWEEN_1200_2359 (12 * 60, new BigDecimal(0.75)),
+        BETWEEN_0200_1159 (2 * 60, new BigDecimal(0.5)),
+        BETWEEN_0001_0159 (0, new BigDecimal(0.25)),
+        BELOW_ZERO (0, BigDecimal.ZERO),
+        ;
+
+        private int startMinute;
+        private BigDecimal percenteToRefund;
+
+    }
 
     private final ReservationRepository reservationRepository;
 
@@ -24,7 +41,7 @@ public class ReservationService {
     public ReservationDTO bookReservation(CreateReservationRequestDTO createReservationRequestDTO) {
         Reservation reservation = reservationMapper.map(createReservationRequestDTO);
         reservation.setReservationStatus(ReservationStatus.READY_TO_PLAY);
-        reservation.setValue(new BigDecimal(100.0));
+        reservation.setValue(new BigDecimal(10.0));
         return reservationMapper.map(reservationRepository.save(reservation));
     }
 
@@ -70,13 +87,15 @@ public class ReservationService {
     }
 
     public BigDecimal getRefundValue(Reservation reservation) {
-        long hours = ChronoUnit.HOURS.between(LocalDateTime.now(), reservation.getSchedule().getStartDateTime());
+        long minutes = ChronoUnit.MINUTES.between(LocalDateTime.now(), reservation.getSchedule().getStartDateTime());
 
-        if (hours >= 24) {
-            return reservation.getValue();
-        }
+        KeepRange keepRangeSelected = Arrays.stream(KeepRange.values())
+                .filter(keepRange -> minutes >= keepRange.startMinute)
+                .findFirst()
+                .orElse(KeepRange.BELOW_ZERO);
 
-        return BigDecimal.ZERO;
+        return reservation.getValue().multiply(keepRangeSelected.percenteToRefund);
+
     }
 
     /*TODO: This method actually not fully working, find a way to fix the issue when it's throwing the error:
