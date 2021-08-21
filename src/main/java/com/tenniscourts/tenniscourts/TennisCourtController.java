@@ -1,10 +1,13 @@
 package com.tenniscourts.tenniscourts;
 
+import ch.qos.logback.core.pattern.util.RegularEscapeUtil;
 import com.tenniscourts.config.BaseRestController;
 import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Api("Tennis Court")
 @RestController
@@ -27,6 +30,11 @@ public class TennisCourtController extends BaseRestController {
     @GetMapping(value="{tennisCourtId}/withschedules")
     public ResponseEntity<TennisCourtDTO> findTennisCourtWithSchedulesById(Long tennisCourtId) {
         return ResponseEntity.ok(tennisCourtService.findTennisCourtWithSchedulesById(tennisCourtId));
+    }
+
+    @GetMapping(value="all")
+    public ResponseEntity<List<TennisCourtDTO>> getAll() {
+        return ResponseEntity.ok(tennisCourtService.getAll());
     }
 
 }

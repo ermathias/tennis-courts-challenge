@@ -33,8 +33,8 @@ public class ScheduleController extends BaseRestController {
         return ResponseEntity.ok(scheduleService.findSchedulesByDates(LocalDateTime.of(startDate, LocalTime.of(0, 0)), LocalDateTime.of(endDate, LocalTime.of(23, 59))));
     }
 
-    @GetMapping(value="{scheduleId}")
-    public ResponseEntity<ScheduleDTO> findByScheduleId(Long scheduleId) {
+    @GetMapping(value="{id}")
+    public ResponseEntity<ScheduleDTO> findByScheduleId(@PathVariable("id") Long scheduleId) {
         return ResponseEntity.ok(scheduleService.findSchedule(scheduleId));
     }
 }

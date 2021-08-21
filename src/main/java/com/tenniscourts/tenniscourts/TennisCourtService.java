@@ -34,4 +34,7 @@ public class TennisCourtService {
         return tennisCourtDTO;
     }
 
+    public List<TennisCourtDTO> getAll() {
+        return tennisCourtMapper.map(tennisCourtRepository.findAll());
+    }
 }

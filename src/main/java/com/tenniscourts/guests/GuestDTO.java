@@ -16,6 +16,6 @@ public class GuestDTO {
     private Long id;
 
     @NotNull
-    private Long name;
+    private String name;
 
 }
