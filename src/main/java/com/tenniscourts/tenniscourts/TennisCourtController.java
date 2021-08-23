@@ -1,6 +1,5 @@
 package com.tenniscourts.tenniscourts;
 
-import ch.qos.logback.core.pattern.util.RegularEscapeUtil;
 import com.tenniscourts.config.BaseRestController;
 import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;

@@ -2,7 +2,6 @@ package com.tenniscourts.reservations;
 
 import com.tenniscourts.config.BaseRestController;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
