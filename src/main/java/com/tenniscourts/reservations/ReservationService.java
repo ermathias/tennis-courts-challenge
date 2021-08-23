@@ -13,20 +13,6 @@ import java.util.Arrays;
 @AllArgsConstructor
 public class ReservationService {
 
-    @AllArgsConstructor
-    enum KeepRange {
-
-        OVER_2400 (24 * 60, new BigDecimal(1)),
-        BETWEEN_1200_2359 (12 * 60, new BigDecimal("0.75")),
-        BETWEEN_0200_1159 (2 * 60, new BigDecimal("0.5")),
-        BETWEEN_0001_0159 (0, new BigDecimal("0.25")),
-        BELOW_ZERO (0, BigDecimal.ZERO),
-        ;
-
-        private final int startMinute;
-        private final BigDecimal percentageToRefund;
-
-    }
 
     private final ReservationRepository reservationRepository;
 
@@ -84,11 +70,11 @@ public class ReservationService {
         long minutes = ChronoUnit.MINUTES.between(LocalDateTime.now(), reservation.getSchedule().getStartDateTime());
 
         KeepRange keepRangeSelected = Arrays.stream(KeepRange.values())
-                .filter(keepRange -> minutes >= keepRange.startMinute)
+                .filter(keepRange -> minutes >= keepRange.getStartMinute())
                 .findFirst()
                 .orElse(KeepRange.BELOW_ZERO);
 
-        return reservation.getValue().multiply(keepRangeSelected.percentageToRefund);
+        return reservation.getValue().multiply(keepRangeSelected.getPercentageToRefund());
 
     }
 
