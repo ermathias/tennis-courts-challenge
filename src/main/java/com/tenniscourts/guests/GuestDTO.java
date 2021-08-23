@@ -1,4 +1,4 @@
-package com.tenniscourts.reservations;
+package com.tenniscourts.guests;
 
 import lombok.*;
 
@@ -10,12 +10,12 @@ import javax.validation.constraints.NotNull;
 @Setter
 @Builder
 @Data
-public class CreateReservationRequestDTO {
+public class GuestDTO {
 
     @NotNull
-    private Long guestId;
+    private Long id;
 
     @NotNull
-    private Long scheduleId;
+    private String name;
 
 }

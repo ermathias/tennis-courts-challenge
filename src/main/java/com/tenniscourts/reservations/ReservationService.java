@@ -7,17 +7,24 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 
 @Service
 @AllArgsConstructor
 public class ReservationService {
+
+
+    public static final BigDecimal ADMIN_RESERVATION_DEPOSIT = new BigDecimal("10.0");
 
     private final ReservationRepository reservationRepository;
 
     private final ReservationMapper reservationMapper;
 
     public ReservationDTO bookReservation(CreateReservationRequestDTO createReservationRequestDTO) {
-        throw new UnsupportedOperationException();
+        Reservation reservation = reservationMapper.map(createReservationRequestDTO);
+        reservation.setReservationStatus(ReservationStatus.READY_TO_PLAY);
+        reservation.setValue(ADMIN_RESERVATION_DEPOSIT);
+        return reservationMapper.map(reservationRepository.save(reservation));
     }
 
     public ReservationDTO findReservation(Long reservationId) {
@@ -27,26 +34,26 @@ public class ReservationService {
     }
 
     public ReservationDTO cancelReservation(Long reservationId) {
-        return reservationMapper.map(this.cancel(reservationId));
+        Reservation reservationToCancel = reservationCanBeCanceled(reservationId);
+        return reservationMapper.map(this.updateReservation(reservationToCancel, ReservationStatus.CANCELLED));
     }
 
-    private Reservation cancel(Long reservationId) {
+    private Reservation reservationCanBeCanceled(Long reservationId) {
         return reservationRepository.findById(reservationId).map(reservation -> {
 
             this.validateCancellation(reservation);
 
-            BigDecimal refundValue = getRefundValue(reservation);
-            return this.updateReservation(reservation, refundValue, ReservationStatus.CANCELLED);
+            reservation.setRefundValue(getRefundValue(reservation));
+            reservation.setValue(reservation.getValue().subtract(reservation.getRefundValue()));
+            return reservation;
 
         }).orElseThrow(() -> {
             throw new EntityNotFoundException("Reservation not found.");
         });
     }
 
-    private Reservation updateReservation(Reservation reservation, BigDecimal refundValue, ReservationStatus status) {
+    private Reservation updateReservation(Reservation reservation, ReservationStatus status) {
         reservation.setReservationStatus(status);
-        reservation.setValue(reservation.getValue().subtract(refundValue));
-        reservation.setRefundValue(refundValue);
 
         return reservationRepository.save(reservation);
     }
@@ -62,26 +69,25 @@ public class ReservationService {
     }
 
     public BigDecimal getRefundValue(Reservation reservation) {
-        long hours = ChronoUnit.HOURS.between(LocalDateTime.now(), reservation.getSchedule().getStartDateTime());
+        long minutes = ChronoUnit.MINUTES.between(LocalDateTime.now(), reservation.getSchedule().getStartDateTime());
 
-        if (hours >= 24) {
-            return reservation.getValue();
-        }
+        KeepRange keepRangeSelected = Arrays.stream(KeepRange.values())
+                .filter(keepRange -> minutes >= keepRange.getStartMinute())
+                .findFirst()
+                .orElse(KeepRange.BELOW_ZERO);
 
-        return BigDecimal.ZERO;
+        return reservation.getValue().multiply(keepRangeSelected.getPercentageToRefund());
+
     }
 
-    /*TODO: This method actually not fully working, find a way to fix the issue when it's throwing the error:
-            "Cannot reschedule to the same slot.*/
     public ReservationDTO rescheduleReservation(Long previousReservationId, Long scheduleId) {
-        Reservation previousReservation = cancel(previousReservationId);
+        Reservation previousReservation = reservationCanBeCanceled(previousReservationId);
 
         if (scheduleId.equals(previousReservation.getSchedule().getId())) {
             throw new IllegalArgumentException("Cannot reschedule to the same slot.");
         }
 
-        previousReservation.setReservationStatus(ReservationStatus.RESCHEDULED);
-        reservationRepository.save(previousReservation);
+        this.updateReservation(previousReservation, ReservationStatus.RESCHEDULED);
 
         ReservationDTO newReservation = bookReservation(CreateReservationRequestDTO.builder()
                 .guestId(previousReservation.getGuest().getId())

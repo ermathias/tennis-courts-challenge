@@ -33,4 +33,61 @@ public class ReservationServiceTest {
 
         Assert.assertEquals(reservationService.getRefundValue(Reservation.builder().schedule(schedule).value(new BigDecimal(10L)).build()), new BigDecimal(10));
     }
+
+    @Test
+    public void getRefundValue3QuarterRefund() {
+        Schedule schedule = new Schedule();
+
+        LocalDateTime startDateTime = LocalDateTime.now().plusDays(1);
+
+        schedule.setStartDateTime(startDateTime);
+
+        Assert.assertTrue(reservationService.getRefundValue(Reservation.builder()
+                .schedule(schedule)
+                .value(new BigDecimal(10L))
+                .build()).compareTo(new BigDecimal(7.5)) == 0);
+    }
+
+    @Test
+    public void getRefundValueHalfRefund() {
+        Schedule schedule = new Schedule();
+
+        LocalDateTime startDateTime = LocalDateTime.now().plusHours(11);
+
+        schedule.setStartDateTime(startDateTime);
+
+        Assert.assertTrue(reservationService.getRefundValue(Reservation.builder()
+                .schedule(schedule)
+                .value(new BigDecimal(10L))
+                .build()).compareTo(new BigDecimal(5)) == 0);
+    }
+
+    @Test
+    public void getRefundValueQuarterRefund() {
+        Schedule schedule = new Schedule();
+
+        LocalDateTime startDateTime = LocalDateTime.now().plusMinutes(10);
+
+        schedule.setStartDateTime(startDateTime);
+
+        Assert.assertTrue(reservationService.getRefundValue(Reservation.builder()
+                .schedule(schedule)
+                .value(new BigDecimal(10L))
+                .build()).compareTo(new BigDecimal(2.5)) == 0);
+    }
+
+    @Test
+    public void getRefundValueZeroRefund() {
+        Schedule schedule = new Schedule();
+
+        LocalDateTime startDateTime = LocalDateTime.now().minusHours(11);
+
+        schedule.setStartDateTime(startDateTime);
+
+        Assert.assertEquals(0, reservationService.getRefundValue(Reservation.builder()
+                .schedule(schedule)
+                .value(new BigDecimal(10L))
+                .build()).compareTo(new BigDecimal(0)));
+    }
+
 }
