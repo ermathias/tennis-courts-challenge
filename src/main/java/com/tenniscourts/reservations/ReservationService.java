@@ -14,6 +14,8 @@ import java.util.Arrays;
 public class ReservationService {
 
 
+    public static final BigDecimal ADMIN_RESERVATION_DEPOSIT = new BigDecimal("10.0");
+
     private final ReservationRepository reservationRepository;
 
     private final ReservationMapper reservationMapper;
@@ -21,7 +23,7 @@ public class ReservationService {
     public ReservationDTO bookReservation(CreateReservationRequestDTO createReservationRequestDTO) {
         Reservation reservation = reservationMapper.map(createReservationRequestDTO);
         reservation.setReservationStatus(ReservationStatus.READY_TO_PLAY);
-        reservation.setValue(new BigDecimal("10.0"));
+        reservation.setValue(ADMIN_RESERVATION_DEPOSIT);
         return reservationMapper.map(reservationRepository.save(reservation));
     }
 
