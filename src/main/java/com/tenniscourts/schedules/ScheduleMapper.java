@@ -5,7 +5,7 @@ import org.mapstruct.Mapper;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public interface ScheduleMapper {
+public interface    ScheduleMapper {
 
     Schedule map(ScheduleDTO source);
 
