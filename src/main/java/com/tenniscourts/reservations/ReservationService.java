@@ -17,7 +17,10 @@ public class ReservationService {
     private final ReservationMapper reservationMapper;
 
     public ReservationDTO bookReservation(CreateReservationRequestDTO createReservationRequestDTO) {
-        throw new UnsupportedOperationException();
+        Reservation reservation = reservationMapper.map(createReservationRequestDTO);
+        reservation.setReservationStatus(ReservationStatus.READY_TO_PLAY);
+        reservation.setValue(new BigDecimal(10));
+        return reservationMapper.map(reservationRepository.save(reservation));
     }
 
     public ReservationDTO findReservation(Long reservationId) {
@@ -27,7 +30,8 @@ public class ReservationService {
     }
 
     public ReservationDTO cancelReservation(Long reservationId) {
-        return reservationMapper.map(this.cancel(reservationId));
+        Reservation cancelledReservation = cancel(reservationId);
+        return reservationMapper.map(this.updateReservation(cancelledReservation, ReservationStatus.CANCELLED));    
     }
 
     private Reservation cancel(Long reservationId) {
@@ -36,17 +40,18 @@ public class ReservationService {
             this.validateCancellation(reservation);
 
             BigDecimal refundValue = getRefundValue(reservation);
-            return this.updateReservation(reservation, refundValue, ReservationStatus.CANCELLED);
+            reservation.setRefundValue(refundValue);
+            reservation.setValue(reservation.getValue().subtract(reservation.getRefundValue()));
+
+            return this.updateReservation(reservation, ReservationStatus.CANCELLED);
 
         }).orElseThrow(() -> {
             throw new EntityNotFoundException("Reservation not found.");
         });
     }
 
-    private Reservation updateReservation(Reservation reservation, BigDecimal refundValue, ReservationStatus status) {
+    private Reservation updateReservation(Reservation reservation, ReservationStatus status) {
         reservation.setReservationStatus(status);
-        reservation.setValue(reservation.getValue().subtract(refundValue));
-        reservation.setRefundValue(refundValue);
 
         return reservationRepository.save(reservation);
     }
@@ -62,10 +67,19 @@ public class ReservationService {
     }
 
     public BigDecimal getRefundValue(Reservation reservation) {
-        long hours = ChronoUnit.HOURS.between(LocalDateTime.now(), reservation.getSchedule().getStartDateTime());
+        long minutes = ChronoUnit.MINUTES.between(LocalDateTime.now(), reservation.getSchedule().getStartDateTime());
 
-        if (hours >= 24) {
+        if (minutes >= 1440) {
             return reservation.getValue();
+        }else if(minutes >= 720){
+            BigDecimal percentageAmount = reservation.getValue().multiply(BigDecimal.valueOf((double)25/100));
+            return reservation.getValue().subtract(percentageAmount);
+        }else if(minutes >= 120 ){
+            BigDecimal percentageAmount = reservation.getValue().multiply(BigDecimal.valueOf((double)50/100));
+            return reservation.getValue().subtract(percentageAmount);
+        }else if(minutes >= 1){
+            BigDecimal percentageAmount = reservation.getValue().multiply(BigDecimal.valueOf((double)75/100));
+            return reservation.getValue().subtract(percentageAmount);
         }
 
         return BigDecimal.ZERO;
@@ -80,8 +94,7 @@ public class ReservationService {
             throw new IllegalArgumentException("Cannot reschedule to the same slot.");
         }
 
-        previousReservation.setReservationStatus(ReservationStatus.RESCHEDULED);
-        reservationRepository.save(previousReservation);
+        this.updateReservation(previousReservation, ReservationStatus.RESCHEDULED);
 
         ReservationDTO newReservation = bookReservation(CreateReservationRequestDTO.builder()
                 .guestId(previousReservation.getGuest().getId())
